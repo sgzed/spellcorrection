@@ -1,11 +1,11 @@
-MUDUO_DIRECTORY ?= $(HOME)/build/release-install
+MUDUO_DIRECTORY ?= $(HOME)/build/release-cpp11
 #MUDUO_DIRECTORY ?= $(HOME)/build/install
-MUDUO_INCLUDE = $(MUDUO_DIRECTORY)/include
+MUDUO_INCLUDE = $(HOME)/muduo
 MUDUO_LIBRARY = $(MUDUO_DIRECTORY)/lib
 SOURCE = $(wildcard *.cc)
 
-CXXFLAGS = -g -O0 -Wall -Wextra -Werror \
-		   -Wconversion -Wno-unused-parameter \
+CXXFLAGS = -g -std=c++11 -Wall -Wextra -Werror \
+		   -Wno-unused-parameter  \
 		   -Wold-style-cast -Woverloaded-virtual \
 		   -Wpointer-arith -Wshadow -Wwrite-strings \
 		   -march=native -rdynamic \
