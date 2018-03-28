@@ -20,16 +20,17 @@ using std::string;
 class MemCache
 {
 public:
-	MemCache(size_t capacity);
+	MemCache(size_t capacity = 100);
 
 	void addCache(const pair<string,string>& element);
+	
+	string query(const string&);
 
 	void reNew();
 private:
 	size_t _capacity;
 	list<pair<string,string>> _cache;
 	unordered_map<string,list<pair<string,string>>::iterator> _querys;
-
 };
 
 #endif 

@@ -35,13 +35,22 @@ void MemCache::addCache(const pair<string,string>& element)
 	}
 }
 
+string MemCache::query(const string& query)
+{
+	string res;
+	auto iter = _querys.find(query);
+	if(iter!=_querys.end())
+		res =  iter->second->second;
+	return res;
+}
+
+
 void MemCache::reNew()
 {
 	for(auto & iter : _cache)
 	{
 		cout << iter.first << ":" << iter.second << endl;;
 	}
-
 	cout << " ----------------------- " << endl;
 }
 

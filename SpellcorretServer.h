@@ -8,6 +8,7 @@
 #define __WD_SPELLCORRECTSERCER_H__
 
 #include "MyTask.h"
+#include "MemCacheManager.h"
 #include <muduo/base/Thread.h>
 #include <muduo/base/ThreadPool.h>
 #include <muduo/net/TcpServer.h>
@@ -32,8 +33,9 @@ private:
 
 	//MyTask _myTask;
 	muduo::net::TcpServer _server;
-	muduo::ThreadPool _threadPool;
 	unsigned short _numThreads;
+	muduo::ThreadPool _threadPool;
+	MemCacheManager _cacheManager;
 };
 
 #endif 

@@ -9,9 +9,13 @@
 
 #include "EditDistance.h"
 #include "MyConf.h"
+#include "MemCache.h"
+#include "MemCacheManager.h"
 #include <muduo/net/TcpConnection.h>
 #include "IndexProducer.h"
+#include <muduo/base/CurrentThread.h>
 
+#include <utility>
 #include <string>
 #include <set>
 #include <queue>
@@ -20,6 +24,9 @@
 using std::vector;
 using std::string;
 using std::priority_queue;
+using std::make_pair;
+
+int str2int(const string& str);
 
 struct MyResult
 {
@@ -47,8 +54,9 @@ struct MyCompare
 class MyTask
 {
 public:
-	MyTask(const string& query)
+	MyTask(const string& query,MemCacheManager& cacheManager)
 		:_query(query)
+		 ,_cacheManager(cacheManager)
 	{	
 	}
 
@@ -58,6 +66,22 @@ public:
 	}
 
 	void process(const muduo::net::TcpConnectionPtr& conn)
+	{
+		cout << "subThread :" << muduo::CurrentThread::t_threadName << endl;
+		
+		size_t idx = str2int(muduo::CurrentThread::t_threadName)-1;
+
+		MemCache& cache = _cacheManager[idx];
+
+		string s = cache.query(_query);
+
+		if(s!="")
+			conn->send(s);
+		else 
+			getFromIndex(conn,cache);
+	}
+
+	void getFromIndex(const muduo::net::TcpConnectionPtr& conn,MemCache& cache)
 	{
 		std::unordered_map<string,std::set<int>> mapIndex = IndexProducer::getInstance()->getIndex();
 		
@@ -85,7 +109,7 @@ public:
 				_priqueue.push(result);
 			}
 		}
-		
+	
 		if(_priqueue.empty())
 		{
 			string msg = "no answer!\n" ;
@@ -93,18 +117,25 @@ public:
 		}
 		else
 		{
-			while(!_priqueue.empty())
+			int cnt = 3 ;
+			string res;
+			while(!_priqueue.empty() && cnt>0)
 			{	
-				string res =_priqueue.top()._word + " ";
-				conn->send(res);
+			    res +=_priqueue.top()._word;
+				res += " ";
 				_priqueue.pop();
+				--cnt;
 			}
-			conn->send("\n");
+			res += "\n";
+			cache.addCache(make_pair(_query,res));
+			cache.reNew();
+			conn->send(res);
 		}
 	}
 
 private:
 	string _query;
+	MemCacheManager& _cacheManager;
 	priority_queue<MyResult,vector<MyResult>,MyCompare> _priqueue; 
 };
 

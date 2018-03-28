@@ -7,6 +7,7 @@
 #include "SpellcorretServer.h"
 
 #include "EditDistance.h"
+#include <muduo/net/EventLoop.h>
 #include <muduo/base/Logging.h>
 #include <functional>
 
@@ -21,10 +22,14 @@ SpellCorrectServer::SpellCorrectServer(muduo::net::EventLoop* loop,
 	:
 	_server(loop,listenAddr,"SpellCorrectServer")
 	 ,_numThreads(numThreads)
+	,_threadPool("")
+	,_cacheManager(_numThreads)
 {
 	_server.setConnectionCallback(std::bind(&SpellCorrectServer::onConnection,this,_1));
 
 	_server.setMessageCallback(std::bind(&SpellCorrectServer::onMessage,this,_1,_2,_3));
+
+	loop->runEvery(100,std::bind(&MemCacheManager::updata,&_cacheManager));
 }
 
 void SpellCorrectServer::start()
@@ -45,11 +50,11 @@ void SpellCorrectServer::onMessage(const muduo::net::TcpConnectionPtr& conn,
 {
 	
 //	string msg = static_cast<string>(buf->retrieveAllAsString());
-		
+
 	string msg(buf->peek(),buf->peek()+buf->readableBytes());
 	buf->retrieveAll();
 
-	MyTask _myTask(msg);
+	MyTask _myTask(msg,_cacheManager);
 
 	LOG_INFO << conn->name() << " recevied " << msg.size() << " bytes, "
 		 << "data received at " << time.toString();
