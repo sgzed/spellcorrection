@@ -38,12 +38,13 @@ int main()
 	string store = confMap["my_dict"];
 	string numThreads = confMap["my_thread_num"];
 	
-	DictProducer dict("./english.txt");
+//	DictProducer dict("./english.txt");
 
-	dict.build_dict();
+//	dict.build_dict();
 
-	dict.store_dict(store.c_str());
+//	dict.store_dict(store.c_str());
 
+	IndexProducer::getInstance()->show();
 
 	LOG_INFO  << "pid = " << getpid(); 
 	muduo::net::EventLoop loop;

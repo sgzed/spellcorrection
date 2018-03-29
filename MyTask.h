@@ -86,18 +86,30 @@ public:
 		std::unordered_map<string,std::set<int>> mapIndex = IndexProducer::getInstance()->getIndex();
 		
 		vector<pair<string,int>> dict = IndexProducer::getInstance()->getDict(); 
-		
+	
+	//	for(auto& iter : dict)
+	//	{
+	//		cout << iter.first << "--> " << iter.second << endl;
+	//	}
+
 		std::set<int> lineset; 
 		
-		for(auto iter : _query)
+		string ch;
+
+		for(size_t idx = 0; idx < _query.size();)
 		{
-			string s(1,iter);
+			size_t nBytes = nBytesCode(_query[idx]);
+			
+			ch = _query.substr(idx,nBytes);
 
-			lineset.insert(mapIndex[s].begin(),mapIndex[s].end());
-
+			idx+=nBytes;
+		
+			lineset.insert(mapIndex[ch].begin(),mapIndex[ch].end());
 		}
+		
 		for(auto it : lineset)
 		{
+			cout << "query = " << _query  << "   " << "dict[it].first = "<<dict[it].first<<endl;
 			size_t distance = editDistance(_query,dict[it].first);
 			//cout << "the pos in vector is " << it << " and distance is " << distance << endl;
 			if(distance <=3 )

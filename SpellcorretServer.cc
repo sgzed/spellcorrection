@@ -51,13 +51,13 @@ void SpellCorrectServer::onMessage(const muduo::net::TcpConnectionPtr& conn,
 	
 //	string msg = static_cast<string>(buf->retrieveAllAsString());
 
-	string msg(buf->peek(),buf->peek()+buf->readableBytes());
+	string msg(buf->peek(),buf->peek()+buf->readableBytes()-1);
 	buf->retrieveAll();
 
 	MyTask _myTask(msg,_cacheManager);
 
 	LOG_INFO << conn->name() << " recevied " << msg.size() << " bytes, "
-		 << "data received at " << time.toString();
+		 << "data received at " << time.toString() << " body is " << msg;
 
 	_threadPool.run(std::bind(&MyTask::process,&_myTask,conn));
 }
