@@ -7,6 +7,7 @@
 #ifndef __WD_INDEXPRODUCER_H__
 #define __WD_INDEXPRODUCER_H__
 
+#include "trie.h"
 #include <pthread.h>
 #include <set>
 #include <string>
@@ -23,15 +24,10 @@ class IndexProducer
 {
 public:
 	static IndexProducer* getInstance();
-
-	unordered_map<string,set<int>>& getIndex()
+	
+	static trie& getTrie()
 	{
-		return _index;
-	}
-
-	static vector<pair<string,int>>& getDict() 
-	{
-		return _dict ;
+		return _trie;
 	}
 	
 	void show() const ;
@@ -45,7 +41,8 @@ private:
 private:
 	static  pthread_once_t _ponce;
 	static IndexProducer* gInstance;
-	static vector<pair<string,int>>  _dict;
-	static unordered_map<string,set<int>> _index;
+	//static vector<pair<string,int>>  _dict;
+	//static unordered_map<string,set<int>> _index;
+	static trie _trie;
 };
 #endif

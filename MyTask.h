@@ -83,40 +83,38 @@ public:
 
 	void getFromIndex(const muduo::net::TcpConnectionPtr& conn,MemCache& cache)
 	{
-		std::unordered_map<string,std::set<int>> mapIndex = IndexProducer::getInstance()->getIndex();
+//		std::unordered_map<string,std::set<int>> mapIndex = IndexProducer::getInstance()->getIndex();
 		
-		vector<pair<string,int>> dict = IndexProducer::getInstance()->getDict(); 
+//		vector<pair<string,int>> dict = IndexProducer::getInstance()->getDict(); 
 	
-	//	for(auto& iter : dict)
-	//	{
-	//		cout << iter.first << "--> " << iter.second << endl;
-	//	}
+		trie indexTrie  = IndexProducer::getInstance()->getTrie();	
 
-		std::set<int> lineset; 
-		
 		string ch;
+
+		vector<string> seach;
 
 		for(size_t idx = 0; idx < _query.size();)
 		{
 			size_t nBytes = nBytesCode(_query[idx]);
 			
 			ch = _query.substr(idx,nBytes);
+	
+			vector<string> tmp = indexTrie.get_str_pre(ch);
+			seach.insert(seach.end(),tmp.begin(),tmp.end());
 
 			idx+=nBytes;
-		
-			lineset.insert(mapIndex[ch].begin(),mapIndex[ch].end());
 		}
 		
-		for(auto it : lineset)
+		for(auto it : seach)
 		{
-			cout << "query = " << _query  << "   " << "dict[it].first = "<<dict[it].first<<endl;
-			size_t distance = editDistance(_query,dict[it].first);
+			cout << "query = " << _query  << "  " << "it = "<< it <<endl;
+			size_t distance = editDistance(_query,it);
 			//cout << "the pos in vector is " << it << " and distance is " << distance << endl;
 			if(distance <=3 )
 			{
 				MyResult result ;	
-				result._word = dict[it].first;
-				result._iFreq  = dict[it].second;
+				result._word = it;
+				result._iFreq  = indexTrie.search_str(it)->count;
 				result._iDist = distance;
 				_priqueue.push(result);
 			}

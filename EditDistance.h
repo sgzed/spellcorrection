@@ -13,7 +13,7 @@ using std::cout;
 using std::endl;
 using std::string;
 
-size_t nBytesCode(const char ch);
+extern size_t nBytesCode(const char ch);
 
 size_t length(const string& str);
 
