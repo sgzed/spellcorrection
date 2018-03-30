@@ -23,19 +23,19 @@ SpellCorrectServer::SpellCorrectServer(muduo::net::EventLoop* loop,
 	_server(loop,listenAddr,"SpellCorrectServer")
 	 ,_numThreads(numThreads)
 	,_threadPool("")
-	,_cacheManager(_numThreads)
+	,_redis()
 {
 	_server.setConnectionCallback(std::bind(&SpellCorrectServer::onConnection,this,_1));
 
 	_server.setMessageCallback(std::bind(&SpellCorrectServer::onMessage,this,_1,_2,_3));
 
-	loop->runEvery(100,std::bind(&MemCacheManager::updata,&_cacheManager));
 }
 
 void SpellCorrectServer::start()
 {
 	_threadPool.start(_numThreads);
 	_server.start();
+	_redis.Connect();
 }
 
 void  SpellCorrectServer::onConnection(const muduo::net::TcpConnectionPtr& conn)
@@ -54,7 +54,7 @@ void SpellCorrectServer::onMessage(const muduo::net::TcpConnectionPtr& conn,
 	string msg(buf->peek(),buf->peek()+buf->readableBytes()-1);
 	buf->retrieveAll();
 
-	MyTask _myTask(msg,_cacheManager);
+	MyTask _myTask(msg,_redis);
 
 	LOG_INFO << conn->name() << " recevied " << msg.size() << " bytes, "
 		 << "data received at " << time.toString() << " body is " << msg;

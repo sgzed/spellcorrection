@@ -11,7 +11,7 @@ CXXFLAGS = -g -std=c++11 -Wall -Wextra -Werror \
 		   -march=native -rdynamic \
 		   -I$(MUDUO_INCLUDE)
 
-LDFLAGS = -L$(MUDUO_LIBRARY) -lmuduo_net -lmuduo_base -lpthread -lrt
+LDFLAGS = -L$(MUDUO_LIBRARY) -L/usr/local/lib -lmuduo_net -lmuduo_base -lpthread -lhiredis -lrt
 
 all: spell
 clean:

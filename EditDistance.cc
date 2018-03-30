@@ -19,7 +19,6 @@ size_t nBytesCode(const char ch)
 			else
 				break;
 		}
-		cout << nBytes << endl;
 		return nBytes;
 	}
 	return 1;

@@ -9,11 +9,10 @@
 
 #include "EditDistance.h"
 #include "MyConf.h"
-#include "MemCache.h"
-#include "MemCacheManager.h"
 #include <muduo/net/TcpConnection.h>
 #include "IndexProducer.h"
 #include <muduo/base/CurrentThread.h>
+#include "redis.h"
 
 #include <utility>
 #include <string>
@@ -54,9 +53,9 @@ struct MyCompare
 class MyTask
 {
 public:
-	MyTask(const string& query,MemCacheManager& cacheManager)
+	MyTask(const string& query,ccx::Redis& redis)
 		:_query(query)
-		 ,_cacheManager(cacheManager)
+		 ,_redis(redis)
 	{	
 	}
 
@@ -69,19 +68,31 @@ public:
 	{
 		cout << "subThread :" << muduo::CurrentThread::t_threadName << endl;
 		
-		size_t idx = str2int(muduo::CurrentThread::t_threadName)-1;
+	//	size_t idx = str2int(muduo::CurrentThread::t_threadName)-1;
 
-		MemCache& cache = _cacheManager[idx];
+		
+		if(_redis.listLen(_query) > 0)
+		{
+		   	vector<string> res = _redis.getList(_query);
+			string s ;
 
-		string s = cache.query(_query);
-
-		if(s!="")
+			cout << "found in redis  len = " << _redis.listLen(_query) << endl;;
+			for(auto iter : res)
+			{
+				cout << iter << " " ;
+				s+=iter;
+				s+=" ";
+			}
+			cout << endl;
+			s+="\n";
 			conn->send(s);
+			_redis.setExpire(_query,10);
+		}
 		else 
-			getFromIndex(conn,cache);
+			getFromIndex(conn);
 	}
 
-	void getFromIndex(const muduo::net::TcpConnectionPtr& conn,MemCache& cache)
+	void getFromIndex(const muduo::net::TcpConnectionPtr& conn)
 	{
 		std::unordered_map<string,std::set<int>> mapIndex = IndexProducer::getInstance()->getIndex();
 		
@@ -134,20 +145,20 @@ public:
 			while(!_priqueue.empty() && cnt>0)
 			{	
 			    res +=_priqueue.top()._word;
+				_redis.rpush(_query,_priqueue.top()._word);
 				res += " ";
 				_priqueue.pop();
 				--cnt;
 			}
+			_redis.setExpire(_query,10);
 			res += "\n";
-			cache.addCache(make_pair(_query,res));
-			cache.reNew();
 			conn->send(res);
 		}
 	}
 
 private:
 	string _query;
-	MemCacheManager& _cacheManager;
+	ccx::Redis& _redis;
 	priority_queue<MyResult,vector<MyResult>,MyCompare> _priqueue; 
 };
 
