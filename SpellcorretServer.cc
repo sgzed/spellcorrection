@@ -23,11 +23,17 @@ SpellCorrectServer::SpellCorrectServer(muduo::net::EventLoop* loop,
 	_server(loop,listenAddr,"SpellCorrectServer")
 	 ,_numThreads(numThreads)
 	,_threadPool("")
-	,_redis()
+	,_mutex()
 {
 	_server.setConnectionCallback(std::bind(&SpellCorrectServer::onConnection,this,_1));
 
 	_server.setMessageCallback(std::bind(&SpellCorrectServer::onMessage,this,_1,_2,_3));
+
+	for(int idx=0;idx != _numThreads;++idx)
+	{
+		ccx::Redis redis = ccx::Redis();
+		_redisque.push_back(redis);
+	}
 
 }
 
@@ -35,7 +41,10 @@ void SpellCorrectServer::start()
 {
 	_threadPool.start(_numThreads);
 	_server.start();
-	_redis.Connect();
+	
+	for(auto& iter : _redisque)
+		iter.Connect();
+
 }
 
 void  SpellCorrectServer::onConnection(const muduo::net::TcpConnectionPtr& conn)
@@ -54,13 +63,29 @@ void SpellCorrectServer::onMessage(const muduo::net::TcpConnectionPtr& conn,
 	string msg(buf->peek(),buf->peek()+buf->readableBytes()-1);
 	buf->retrieveAll();
 
-	MyTask _myTask(msg,_redis);
+	ccx::Redis redis;
+	
+	{
+		muduo::MutexLockGuard lock(_mutex);
+	
+		redis = _redisque.front();
+	
+		_redisque.pop_front();
+	}
+
+	MyTask _myTask(msg,redis);
 
 	LOG_INFO << conn->name() << " recevied " << msg.size() << " bytes, "
 		 << "data received at " << time.toString() << " body is " << msg;
 
 	_threadPool.run(std::bind(&MyTask::process,&_myTask,conn));
+
+	{
+		muduo::MutexLockGuard lock(_mutex);
+		_redisque.push_back(redis);
+	}
 }
+
 
 
 

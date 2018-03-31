@@ -70,7 +70,6 @@ public:
 		
 	//	size_t idx = str2int(muduo::CurrentThread::t_threadName)-1;
 
-		
 		if(_redis.listLen(_query) > 0)
 		{
 		   	vector<string> res = _redis.getList(_query);
@@ -98,10 +97,10 @@ public:
 		
 		vector<pair<string,int>> dict = IndexProducer::getInstance()->getDict(); 
 	
-	//	for(auto& iter : dict)
-	//	{
-	//		cout << iter.first << "--> " << iter.second << endl;
-	//	}
+//		for(auto& iter : dict)
+//		{
+//			cout << iter.first << "--> " << iter.second << endl;
+//		}
 
 		std::set<int> lineset; 
 		

@@ -9,9 +9,12 @@
 
 #include "MyTask.h"
 #include "redis.h"
+#include <deque>
 #include <muduo/base/Thread.h>
 #include <muduo/base/ThreadPool.h>
 #include <muduo/net/TcpServer.h>
+#include <muduo/base/Mutex.h>
+using std::deque;
 
 class SpellCorrectServer
 {
@@ -35,7 +38,8 @@ private:
 	muduo::net::TcpServer _server;
 	unsigned short _numThreads;
 	muduo::ThreadPool _threadPool;
-	ccx::Redis _redis;
+	deque<ccx::Redis> _redisque;
+	muduo::MutexLock _mutex;	
 };
 
 #endif 

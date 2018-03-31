@@ -187,4 +187,11 @@ namespace ccx{
 		return false;
 	}
 
+	Redis::~Redis()
+	{
+		cout << "~Redis()" << endl;
+	}
 }
+
+
+

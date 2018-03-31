@@ -19,6 +19,8 @@ namespace ccx{
 	{
 		public:
 			Redis();
+			~Redis();
+
 		public:
 			void Connect();
 			void disConnect();
